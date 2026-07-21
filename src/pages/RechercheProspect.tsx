@@ -32,6 +32,9 @@ export const RechercheProspect = () => {
 
   const activeRegion = profile?.role === 'admin' ? nationalSelectedRegion : profile?.region;
 
+  // useEffect : Permet d'exécuter des effets de bord dans les composants fonctionnels.
+  // Ici, il se déclenche à chaque fois que la variable 'activeRegion' change (déclarée dans le tableau de dépendances à la fin).
+  // Ce bloc charge les données géographiques (au format GeoJSON) pour peupler la carte (qui utilise Leaflet en interne via le composant ProspectMap).
   // Charger les points de la région une seule fois (ou à chaque changement de région)
   useEffect(() => {
     if (!activeRegion) {
@@ -57,6 +60,8 @@ export const RechercheProspect = () => {
       });
   }, [activeRegion]);
 
+  // Un autre useEffect : Celui-ci écoute les changements sur 'selectedAssoId'.
+  // Dès qu'une association est cliquée sur la carte (gérée par Leaflet), son ID est mis à jour, ce qui déclenche ici un appel API pour récupérer ses détails complets et les afficher dans le panneau latéral.
   // Charger les données de l'asso sélectionnée pour le panneau latéral
   useEffect(() => {
     if (!selectedAssoId) {
@@ -73,6 +78,9 @@ export const RechercheProspect = () => {
   const normCity = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
   const cleanCity = (s: string) => s.replace(/\s+/g, " ").trim();
 
+  // useMemo : Permet de mémoriser une valeur calculée pour éviter de la recalculer à chaque rendu du composant.
+  // Ce recalcul n'aura lieu que si la variable 'points' change.
+  // Ici, on construit un index (un dictionnaire) qui regroupe les points (associations) par ville, ce qui rendra la recherche par ville beaucoup plus rapide.
   const cityIndex = useMemo(() => {
     const m = new Map<string, { name: string; pts: any[] }>();
     for (const p of points) {
@@ -86,6 +94,8 @@ export const RechercheProspect = () => {
     return m;
   }, [points]);
 
+  // Encore un useMemo : Celui-ci filtre l'index des villes (cityIndex) en fonction de la requête de recherche 'q'.
+  // Il retourne une liste de correspondances (autocomplétion) triée selon que le nom de la ville commence par ou contient la recherche.
   const cityMatches = useMemo(() => {
     const t = normCity(q);
     if (t.length < 2) return [] as { name: string; count: number }[];
@@ -101,6 +111,7 @@ export const RechercheProspect = () => {
   const pointIds = useMemo(() => new Set(points.map(p => p.id)), [points]);
 
   // Suggestions Meilisearch
+  // Ce useEffect met en place un "debounce" (délai de 160ms) pour éviter d'appeler l'API de recherche à chaque frappe de clavier.
   useEffect(() => {
     const t = q.trim();
     if (!t) { setSuggestions([]); return; }
@@ -136,6 +147,8 @@ export const RechercheProspect = () => {
     }
   }, [cityMatches, q, addKeyword]);
 
+  // Ce useMemo effectue l'intersection des résultats de recherche par mots-clés.
+  // Il combine les IDs retournés pour chaque mot-clé et ne garde que ceux qui sont communs à tous les mots-clés (filtrage cumulatif).
   const keywordIds = useMemo(() => {
     if (keywords.length === 0) return null;
     let acc: Set<string> | null = null;
@@ -301,6 +314,11 @@ export const RechercheProspect = () => {
       </div>
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0, gap: '1rem' }}>
+        {/* 
+          C'est ici que la carte Leaflet est intégrée indirectement !
+          Le composant enfant ProspectMap va se charger d'initialiser Leaflet et d'afficher les 'points' transmis en props,
+          en appliquant éventuellement des filtres (keywordIds, categoryId) calculés plus haut avec useMemo.
+        */}
         <div className="card" style={{ flex: 1, minHeight: 0, padding: 0, overflow: 'hidden' }}>
           <ProspectMap 
             userRegion={activeRegion || undefined} 

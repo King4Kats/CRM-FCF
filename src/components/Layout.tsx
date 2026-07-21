@@ -1,8 +1,21 @@
+/**
+ * IMPORTS REACT ROUTER :
+ * - Outlet : Composant clé pour les layouts imbriqués. Il agit comme un emplacement dynamique
+ *   (placeholder) où le composant de la sous-route active sera rendu.
+ * - NavLink : Composant de navigation spécialisé qui sait si la route pointée ("to") est active ou non,
+ *   permettant de styliser le lien actif facilement via des fonctions d'état (isActive).
+ */
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Users, LayoutDashboard, LogOut, Settings, Target, ChevronDown, ChevronRight, UserCog, Folder } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 
+/**
+ * RÔLE DU COMPOSANT LAYOUT :
+ * Le Layout définit le squelette / la structure globale de l'application (ex: Sidebar, Topbar).
+ * Il reste affiché en permanence lors de la navigation entre les différentes pages, ce qui évite
+ * de réinstancier le menu latéral ou le header à chaque changement de page.
+ */
 export const Layout = () => {
   const { signOut, profile } = useAuth();
   const navigate = useNavigate();
@@ -32,6 +45,12 @@ export const Layout = () => {
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+          {/* 
+            EXPLICATION NAVLINK :
+            `NavLink` reçoit une fonction callback pour `className` et `style`. 
+            React Router lui passe un objet contenant la propriété boolean `isActive`.
+            Cela permet d'appliquer des classes CSS ou styles en ligne spécifiques si la route correspond à l'URL actuelle.
+          */}
           <NavLink 
             to="/" 
             className={({isActive}) => `btn btn-secondary ${isActive ? 'active' : ''}`}
@@ -176,6 +195,11 @@ export const Layout = () => {
           </div>
         </header>
         <div className="content-area">
+          {/* 
+            EXPLICATION OUTLET :
+            C'est ici que s'affiche le composant de la route enfant sélectionnée (ex: Dashboard, Members, Documents...).
+            Sans l'Outlet, les composants des sous-routes ne pourraient pas s'insérer dans ce Layout.
+          */}
           <Outlet />
         </div>
       </main>
