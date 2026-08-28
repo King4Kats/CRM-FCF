@@ -2,11 +2,14 @@ import { useEffect, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Search, Plus, MapPin, Phone, Edit, Trash2, Clock, Eye, Download, UserPlus, HelpCircle, X } from 'lucide-react';
+import { Search, Plus, MapPin, Phone, Edit, Trash2, Clock, Eye, Download, UserPlus, HelpCircle, X, Mail } from 'lucide-react';
 import { ProspectForm, type ProspectFormData } from '../components/ProspectForm';
 import { ProspectTimeline, type FollowUp } from '../components/ProspectTimeline';
 import { ProspectProfileModal } from '../components/ProspectProfileModal';
-import { type Prospect, MOCK_PROSPECTS } from '../lib/mockProspects';
+import { type Prospect, getMockProspects } from '../lib/mockProspects';
+import { EventFormModal, type EventFormData } from '../components/EventFormModal';
+import { useEvents } from '../contexts/EventsContext';
+import { Calendar as CalendarIcon } from 'lucide-react';
 
 export const SuiviProspect = () => {
   const { profile } = useAuth();
@@ -24,6 +27,15 @@ export const SuiviProspect = () => {
   const [prospectToConvert, setProspectToConvert] = useState<Prospect | null>(null);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [isStatusInfoOpen, setIsStatusInfoOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  
+  const { addEvent } = useEvents();
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [eventPrefill, setEventPrefill] = useState<Partial<EventFormData> | null>(null);
+
+  useEffect(() => {
+    setSelectedIds([]); // Reset selection when filters change
+  }, [searchTerm, selectedRegion, selectedStatus]);
 
   useEffect(() => {
     fetchProspects();
@@ -33,10 +45,11 @@ export const SuiviProspect = () => {
     setLoading(true);
     try {
       if (import.meta.env.VITE_SUPABASE_URL === undefined) {
+        const localProspects = getMockProspects();
         if (profile?.role === 'regional' && profile.region) {
-          setProspects(MOCK_PROSPECTS.filter(p => p.region === profile.region));
+          setProspects(localProspects.filter(p => p.region === profile.region));
         } else {
-          setProspects(MOCK_PROSPECTS);
+          setProspects(localProspects);
         }
         setLoading(false);
         return;
@@ -54,7 +67,7 @@ export const SuiviProspect = () => {
       if (data) setProspects(data as Prospect[]);
     } catch (error) {
       console.error('Error fetching prospects:', error);
-      setProspects(MOCK_PROSPECTS);
+      setProspects(getMockProspects());
     } finally {
       setLoading(false);
     }
@@ -183,6 +196,31 @@ export const SuiviProspect = () => {
     link.click();
   };
 
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(filteredProspects.map(p => p.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleBulkEmail = () => {
+    const emails = prospects
+      .filter(p => selectedIds.includes(p.id))
+      .map(p => p.email_contact || p.email_asso)
+      .filter(Boolean);
+    
+    if (emails.length > 0) {
+      window.location.href = `mailto:?bcc=${emails.join(',')}`;
+    } else {
+      alert("Aucune adresse e-mail trouvée pour la sélection.");
+    }
+  };
+
   const getStatusBadgeClass = (status: string) => {
     if (status === 'Converti') return 'badge-ajour'; // green
     if (status === 'Perdu') return 'badge-nonpaye'; // red
@@ -268,8 +306,25 @@ export const SuiviProspect = () => {
     }
   };
 
+  const handleOpenEventModal = (prospect: Prospect) => {
+    setEventPrefill({
+      title: `Relance Prospect : ${prospect.nom_association}`,
+      description: `Contact: ${prospect.prenom} ${prospect.nom}\nTél: ${prospect.telephone_contact || prospect.telephone_asso}\nStatut: ${prospect.statut_prospection}`,
+      region: prospect.region
+    });
+    setIsEventModalOpen(true);
+  };
+
   return (
     <div className="animate-fade-in">
+      <EventFormModal
+        isOpen={isEventModalOpen}
+        onClose={() => { setIsEventModalOpen(false); setEventPrefill(null); }}
+        onSubmit={async (data) => {
+          await addEvent(data);
+        }}
+        prefillData={eventPrefill || undefined}
+      />
       <ProspectForm 
         isOpen={isFormOpen} 
         onClose={() => setIsFormOpen(false)} 
@@ -370,52 +425,79 @@ export const SuiviProspect = () => {
       </div>
 
       <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center' }}>
-            <div style={{ position: 'relative', width: '300px' }}>
-              <Search size={20} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
-              <input 
-                type="text" 
-                placeholder="Rechercher un prospect..." 
-                className="input-field"
-                style={{ paddingLeft: '2.5rem', marginBottom: 0, minWidth: '300px' }}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <select 
-                className="input-field" 
-                style={{ marginBottom: 0, minWidth: '180px', appearance: 'auto' }}
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-              >
-                <option value="">Tous les statuts</option>
-                <option value="Nouveau">Nouveau</option>
-                <option value="1er contact">1er contact</option>
-                <option value="2ème contact">2ème contact</option>
-                <option value="3ème contact">3ème contact</option>
-                <option value="En négociation">En négociation</option>
-                <option value="Converti">Converti</option>
-                <option value="Perdu">Perdu</option>
-              </select>
-              <select 
-                className="input-field" 
-                style={{ marginBottom: 0, minWidth: '180px', appearance: 'auto' }}
-                value={selectedRegion}
-                onChange={(e) => setSelectedRegion(e.target.value)}
-              >
-                <option value="">Toutes les régions</option>
-                {uniqueRegions.map(region => (
-                  <option key={region} value={region}>{region}</option>
-                ))}
-              </select>
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center', minHeight: '42px' }}>
+            {selectedIds.length > 0 ? (
+              <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', backgroundColor: '#EFF6FF', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #BFDBFE' }}>
+                <span style={{ fontWeight: 600, color: 'var(--primary)' }}>
+                  {selectedIds.length} prospect{selectedIds.length > 1 ? 's' : ''} sélectionné{selectedIds.length > 1 ? 's' : ''}
+                </span>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '1rem' }}>
+                  <button className="btn btn-secondary" onClick={() => setSelectedIds([])} style={{ backgroundColor: 'white' }}>
+                    Annuler
+                  </button>
+                  <button className="btn btn-primary" onClick={handleBulkEmail}>
+                    <Mail size={18} />
+                    Contacter par e-mail
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div style={{ position: 'relative', width: '300px' }}>
+                  <Search size={20} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
+                  <input 
+                    type="text" 
+                    placeholder="Rechercher un prospect..." 
+                    className="input-field"
+                    style={{ paddingLeft: '2.5rem', marginBottom: 0, minWidth: '300px' }}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <select 
+                    className="input-field" 
+                    style={{ marginBottom: 0, minWidth: '180px', appearance: 'auto' }}
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                  >
+                    <option value="">Tous les statuts</option>
+                    <option value="Nouveau">Nouveau</option>
+                    <option value="1er contact">1er contact</option>
+                    <option value="2ème contact">2ème contact</option>
+                    <option value="3ème contact">3ème contact</option>
+                    <option value="En négociation">En négociation</option>
+                    <option value="Converti">Converti</option>
+                    <option value="Perdu">Perdu</option>
+                  </select>
+                  <select 
+                    className="input-field" 
+                    style={{ marginBottom: 0, minWidth: '180px', appearance: 'auto' }}
+                    value={selectedRegion}
+                    onChange={(e) => setSelectedRegion(e.target.value)}
+                  >
+                    <option value="">Toutes les régions</option>
+                    {uniqueRegions.map(region => (
+                      <option key={region} value={region}>{region}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="table-container">
             <table className="data-table">
               <thead>
                 <tr>
+                  <th className="checkbox-cell">
+                    <input 
+                      type="checkbox" 
+                      className="custom-checkbox"
+                      checked={filteredProspects.length > 0 && selectedIds.length === filteredProspects.length}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
                   <th>Association</th>
                   <th>Contact</th>
                   <th>
@@ -441,6 +523,14 @@ export const SuiviProspect = () => {
                 ) : (
                   filteredProspects.map((prospect) => (
                     <tr key={prospect.id}>
+                      <td className="checkbox-cell">
+                        <input 
+                          type="checkbox" 
+                          className="custom-checkbox"
+                          checked={selectedIds.includes(prospect.id)}
+                          onChange={() => handleSelectOne(prospect.id)}
+                        />
+                      </td>
                       <td>
                         <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{prospect.nom_association}</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -481,6 +571,13 @@ export const SuiviProspect = () => {
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
+                          <button 
+                            onClick={() => handleOpenEventModal(prospect)}
+                            className="btn-icon primary" 
+                            title="Créer un rappel dans l'agenda"
+                          >
+                            <CalendarIcon size={16} />
+                          </button>
                           <button 
                             onClick={() => { setViewingProspect(prospect); setIsViewOpen(true); }}
                             className="btn-icon" 

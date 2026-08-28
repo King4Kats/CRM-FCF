@@ -52,9 +52,11 @@ export const Login = () => {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-base)' }}>
       <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem', border: '1px solid var(--border-light)' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.5rem', margin: '0 auto 1rem auto' }}>
-            F
-          </div>
+          <img 
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHG8GhH50HdgC_i4bm3UehsbK_PHHMYXVu3u_2npzFBA&s=10" 
+            alt="Logo FCF" 
+            style={{ height: '80px', objectFit: 'contain', margin: '0 auto 1rem auto', display: 'block' }} 
+          />
           <h2>Connexion CRM FCF</h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '0.875rem' }}>
             Accédez à votre espace de gestion

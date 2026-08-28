@@ -8,6 +8,8 @@ import { X, ArrowLeft, Globe, MapPin, ExternalLink, CalendarDays, Search } from 
 import { RegionSelectorMap } from '../components/RegionSelectorMap';
 import { CATEGORIES } from '../lib/categories';
 import { useAuth } from '../contexts/AuthContext';
+import { saveMockProspect } from '../lib/mockProspects';
+import { useToast } from '../contexts/ToastContext';
 
 export const RechercheProspect = () => {
   const { profile } = useAuth();
@@ -31,6 +33,7 @@ export const RechercheProspect = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const activeRegion = profile?.role === 'admin' ? nationalSelectedRegion : profile?.region;
+  const { showToast } = useToast();
 
   // useEffect : Permet d'exécuter des effets de bord dans les composants fonctionnels.
   // Ici, il se déclenche à chaque fois que la variable 'activeRegion' change (déclarée dans le tableau de dépendances à la fin).
@@ -162,36 +165,44 @@ export const RechercheProspect = () => {
   }, [keywords, kwIds]);
 
   const handleAddProspect = async (asso: any) => {
+    const newProspect = {
+      nom: 'À définir',
+      prenom: 'Contact',
+      nom_association: asso.name,
+      telephone_asso: asso.social?.phone || '',
+      email_asso: asso.social?.email || '',
+      adresse: asso.address?.street || '',
+      ville: asso.city || '',
+      region: activeRegion || 'BRETAGNE',
+      statut_prospection: 'Nouveau' as const,
+      origine: 'Recherche Carte (GemensKarte)',
+      site_web: asso.social?.website || '',
+      telephone_contact: '',
+      email_contact: '',
+      president: '',
+      representant_legal: '',
+      nb_evenements_an: 0,
+      siret: '',
+      facebook: asso.social?.facebook || ''
+    };
+
     if (import.meta.env.VITE_SUPABASE_URL === undefined) {
-      alert(`En mode démo: L'association ${asso.name} serait ajoutée à vos prospects.`);
+      saveMockProspect({ id: Math.random().toString(), ...newProspect });
+      showToast(`L'association ${asso.name} a été ajoutée à vos prospects.`, "success");
       navigate('/prospects/suivi');
       return;
     }
 
     try {
-      const { error } = await supabase.from('prospects').insert([{
-        nom: 'À définir',
-        prenom: 'Contact',
-        nom_association: asso.name,
-        telephone_asso: asso.social?.phone || '',
-        email_asso: asso.social?.email || '',
-        adresse: asso.address?.street || '',
-        ville: asso.city || '',
-        region: activeRegion || 'BRETAGNE',
-        statut_prospection: 'Nouveau',
-        origine: 'Recherche Carte (GemensKarte)',
-        site_web: asso.social?.website || '',
-        telephone_contact: '',
-        email_contact: ''
-      }]);
+      const { error } = await supabase.from('prospects').insert([newProspect]);
 
       if (error) throw error;
       
-      alert('Prospect ajouté avec succès !');
+      showToast('Prospect ajouté avec succès !', "success");
       navigate('/prospects/suivi');
     } catch (err) {
       console.error(err);
-      alert('Erreur lors de l\'ajout du prospect');
+      showToast('Erreur lors de l\'ajout du prospect', "error");
     }
   };
 

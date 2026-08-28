@@ -6,7 +6,7 @@
  *   permettant de styliser le lien actif facilement via des fonctions d'état (isActive).
  */
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Users, LayoutDashboard, LogOut, Settings, Target, ChevronDown, ChevronRight, UserCog, Folder } from 'lucide-react';
+import { Users, LayoutDashboard, LogOut, Settings, Target, ChevronDown, ChevronRight, UserCog, Folder, Calendar } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 
@@ -36,9 +36,11 @@ export const Layout = () => {
     <div className="app-container">
       <aside className="sidebar">
         <div style={{ padding: '0 1rem 2rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
-            F
-          </div>
+          <img 
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHG8GhH50HdgC_i4bm3UehsbK_PHHMYXVu3u_2npzFBA&s=10" 
+            alt="Logo FCF" 
+            style={{ height: '56px', objectFit: 'contain' }} 
+          />
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
             {profile?.role === 'admin' ? 'FCF France' : `FCF ${profile?.region || ''}`}
           </h2>
@@ -79,6 +81,21 @@ export const Layout = () => {
           >
             <Users size={18} />
             Adhérents
+          </NavLink>
+
+          <NavLink 
+            to="/agenda" 
+            className={({isActive}) => `btn btn-secondary ${isActive ? 'active' : ''}`}
+            style={({isActive}) => ({
+              justifyContent: 'flex-start',
+              padding: '0.75rem 1rem',
+              border: 'none',
+              backgroundColor: isActive ? 'var(--bg-surface-hover)' : 'transparent',
+              color: isActive ? 'var(--primary)' : 'var(--text-secondary)'
+            })}
+          >
+            <Calendar size={18} />
+            Agenda
           </NavLink>
 
           <NavLink 

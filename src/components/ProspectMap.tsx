@@ -84,7 +84,7 @@ export const ProspectMap = ({
 
     if (!clusterRef.current) {
       clusterRef.current = L.markerClusterGroup({
-        chunkedLoading: false,
+        chunkedLoading: true,
         removeOutsideVisibleBounds: true,
         maxClusterRadius: 50,
         iconCreateFunction: (cluster) => {
@@ -125,16 +125,21 @@ export const ProspectMap = ({
     const group = clusterRef.current;
     group.clearLayers();
     markersMapRef.current = {};
-
-    const markers = filteredPoints.map(p => {
-      const cat = catById(p.categoryId);
-      
-      const icon = L.divIcon({
+    
+    // Cache icons to prevent massive memory allocation
+    const iconCache: Record<string, L.DivIcon> = {};
+    CATEGORIES.forEach(cat => {
+      iconCache[cat.id] = L.divIcon({
         className: 'custom-map-marker',
         html: `<div style="background-color: ${cat.color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white;"></div>`,
         iconSize: [18, 18],
         iconAnchor: [9, 9]
       });
+    });
+
+    const markers = filteredPoints.map(p => {
+      const cat = catById(p.categoryId);
+      const icon = iconCache[cat.id];
 
       const marker = L.marker([p.lat, p.lng], { icon, catId: cat.id } as any);
 

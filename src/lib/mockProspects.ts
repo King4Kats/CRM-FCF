@@ -28,3 +28,19 @@ export const MOCK_PROSPECTS: Prospect[] = [
   // CORSE
   { id: 'p5', nom: 'Paoli', prenom: 'Jean', nom_association: 'Polyphonies', ville: 'Bastia', region: 'CORSE', statut_prospection: 'Perdu', ...defaultExtra, origine: 'Prospection directe' },
 ];
+
+export const getMockProspects = (): Prospect[] => {
+  const stored = localStorage.getItem('crm_prospects');
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  // Initialize if empty
+  localStorage.setItem('crm_prospects', JSON.stringify(MOCK_PROSPECTS));
+  return MOCK_PROSPECTS;
+};
+
+export const saveMockProspect = (prospect: Prospect) => {
+  const current = getMockProspects();
+  const updated = [prospect, ...current];
+  localStorage.setItem('crm_prospects', JSON.stringify(updated));
+};

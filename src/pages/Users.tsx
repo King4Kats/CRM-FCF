@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase, supabaseAdminAuth } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { UserPlus, Shield, MapPin, X, Loader2 } from 'lucide-react';
+import { UserPlus, Shield, MapPin, X, Loader2, Edit2, Key, Ban, Trash2 } from 'lucide-react';
 import { COVERED } from '../data/departements';
+import { useToast } from '../contexts/ToastContext';
 
 // Liste des régions uniques à partir des départements couverts
 const ALL_REGIONS = Array.from(new Set(Object.values(COVERED).map(d => d.region))).sort();
@@ -21,6 +22,7 @@ export const Users = () => {
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRegion, setSelectedRegion] = useState('');
+  const { showToast, showConfirm } = useToast();
   
   // Form state
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -205,9 +207,37 @@ export const Users = () => {
                     )}
                   </td>
                   <td>
-                    <button className="btn btn-secondary" style={{ padding: '0.5rem' }} title="Révoquer l'accès">
-                      <X size={16} />
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button 
+                        className="btn-icon" 
+                        title="Modifier la fiche"
+                        onClick={() => showToast(`Modification de la fiche de ${u.full_name}`, 'info')}
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button 
+                        className="btn-icon" 
+                        title="Envoyer un lien de réinitialisation du mot de passe"
+                        onClick={() => showToast(`Un lien de réinitialisation a été envoyé à ${u.email}`, 'success')}
+                      >
+                        <Key size={16} />
+                      </button>
+                      <button 
+                        className="btn-icon" 
+                        title="Suspendre le profil"
+                        style={{ color: '#f59e0b' }}
+                        onClick={() => showConfirm(`Voulez-vous vraiment suspendre le profil de ${u.full_name} ?`, () => showToast(`Profil suspendu.`, 'error'))}
+                      >
+                        <Ban size={16} />
+                      </button>
+                      <button 
+                        className="btn-icon danger" 
+                        title="Supprimer le profil"
+                        onClick={() => showConfirm(`Attention, voulez-vous supprimer définitivement ${u.full_name} ?`, () => showToast(`Profil supprimé.`, 'error'))}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

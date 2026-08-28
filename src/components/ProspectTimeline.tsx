@@ -9,6 +9,7 @@ export type FollowUp = {
   type: 'Note' | 'Appel' | 'Email' | 'Paiement';
   notes: string;
   visibility?: 'public' | 'private';
+  date_rappel?: string;
 };
 
 type Props = {
@@ -16,7 +17,7 @@ type Props = {
   onClose: () => void;
   prospect: any | null; // using any temporarily, will type correctly
   followUps: FollowUp[];
-  onAddFollowUp: (data: { date: string; type: FollowUp['type']; notes: string; visibility: 'public' | 'private' }) => void;
+  onAddFollowUp: (data: { date: string; type: FollowUp['type']; notes: string; visibility: 'public' | 'private'; date_rappel?: string }) => void;
   onUpdateFollowUp: (id: string, newNotes: string) => void;
   onDeleteFollowUp: (id: string) => void;
 };
@@ -25,6 +26,7 @@ export const ProspectTimeline: React.FC<Props> = ({ isOpen, onClose, prospect, f
   const [newNote, setNewNote] = useState('');
   const [noteType, setNoteType] = useState<FollowUp['type']>('Note');
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+  const [dateRappel, setDateRappel] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNote, setEditNote] = useState('');
 
@@ -46,11 +48,13 @@ export const ProspectTimeline: React.FC<Props> = ({ isOpen, onClose, prospect, f
       date: new Date().toISOString(),
       type: noteType,
       notes: newNote.trim(),
-      visibility
+      visibility,
+      date_rappel: dateRappel || undefined
     });
     setNewNote('');
     setNoteType('Note');
     setVisibility('public');
+    setDateRappel('');
   };
 
   const startEdit = (followUp: FollowUp) => {
@@ -128,6 +132,11 @@ export const ProspectTimeline: React.FC<Props> = ({ isOpen, onClose, prospect, f
                       ) : (
                         <span title="Note publique (partagée avec le national)" style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--primary)', backgroundColor: 'rgba(59, 130, 246, 0.1)', padding: '0.125rem 0.375rem', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 600 }}>
                           <Globe size={10} style={{ marginRight: '0.125rem' }} /> Public
+                        </span>
+                      )}
+                      {item.date_rappel && (
+                        <span title="Rappel planifié" style={{ display: 'inline-flex', alignItems: 'center', color: '#059669', backgroundColor: '#d1fae5', padding: '0.125rem 0.375rem', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 600 }}>
+                          <Clock size={10} style={{ marginRight: '0.125rem' }} /> Rappel: {new Date(item.date_rappel).toLocaleDateString('fr-FR')}
                         </span>
                       )}
                     </div>
@@ -220,12 +229,23 @@ export const ProspectTimeline: React.FC<Props> = ({ isOpen, onClose, prospect, f
               ))}
             </div>
 
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input 
+                type="date"
+                className="input-field"
+                title="Date de rappel (optionnel)"
+                value={dateRappel}
+                onChange={(e) => setDateRappel(e.target.value)}
+                style={{ marginBottom: 0, padding: '0.25rem 0.5rem', fontSize: '0.75rem', width: 'auto' }}
+              />
+            </div>
+            
             <textarea 
               className="input-field" 
               placeholder="Saisissez votre note ici..." 
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
-              style={{ minHeight: '80px', resize: 'vertical' }}
+              style={{ minHeight: '80px', resize: 'vertical', marginTop: '-0.5rem' }}
             />
             <button type="submit" className="btn btn-primary" disabled={!newNote.trim()}>
               Ajouter la note

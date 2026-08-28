@@ -1,6 +1,6 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { EventsProvider } from './contexts/EventsContext';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
@@ -10,6 +10,8 @@ import { RechercheProspect } from './pages/RechercheProspect';
 import { Users } from './pages/Users';
 import { Settings } from './pages/Settings';
 import { Documents } from './pages/Documents';
+import { Agenda } from './pages/Agenda';
+import { ToastProvider } from './contexts/ToastContext';
 
 /**
  * Le composant ProtectedRoute agit comme un "gardien".
@@ -46,6 +48,7 @@ const AppRoutes = () => {
         <Route path="documents" element={<Documents />} />
         <Route path="users" element={<Users />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="agenda" element={<Agenda />} />
         <Route path="prospects">
           <Route path="suivi" element={<SuiviProspect />} />
           <Route path="recherche" element={<RechercheProspect />} />
@@ -65,9 +68,13 @@ const AppRoutes = () => {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <ToastProvider>
+        <EventsProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </EventsProvider>
+      </ToastProvider>
     </AuthProvider>
   );
 }
