@@ -1,0 +1,10 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Le routage SPA et le proxy /gemenskarte-api sont gérés par public/_redirects
+# (copié dans dist au build). On ne redéfinit donc PAS de redirection ici,
+# pour ne pas écraser ce fichier (netlify.toml aurait la priorité).
