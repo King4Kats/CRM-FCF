@@ -55,9 +55,11 @@ export const ProspectMap = ({
     const map = L.map(mapElRef.current, { center, zoom, zoomControl: false });
     L.control.zoom({ position: "bottomright" }).addTo(map);
     
-    // Fond de carte BLANC (CartoDB Positron) comme demandé
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap contributors, © CARTO",
+    // Fond de carte CLAIR (Esri World Light Gray Canvas) — gratuit, sans clé API.
+    // Remplace CartoDB Positron qui exige désormais une clé API (carto.com/basemaps/apikey).
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+      attribution: "Tiles © Esri — Esri, DeLorme, NAVTEQ",
+      maxNativeZoom: 16,
       maxZoom: 19,
     }).addTo(map);
     

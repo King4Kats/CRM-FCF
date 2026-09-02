@@ -53,8 +53,8 @@ export const Layout = () => {
             React Router lui passe un objet contenant la propriété boolean `isActive`.
             Cela permet d'appliquer des classes CSS ou styles en ligne spécifiques si la route correspond à l'URL actuelle.
           */}
-          <NavLink 
-            to="/" 
+          <NavLink
+            to="/"
             className={({isActive}) => `btn btn-secondary ${isActive ? 'active' : ''}`}
             style={({isActive}) => ({
               justifyContent: 'flex-start',
@@ -67,6 +67,60 @@ export const Layout = () => {
             <LayoutDashboard size={18} />
             Tableau de Bord
           </NavLink>
+
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <button
+              onClick={() => setIsProspectsOpen(!isProspectsOpen)}
+              className={`btn btn-secondary ${isProspectsActive ? 'active' : ''}`}
+              style={{
+                justifyContent: 'space-between',
+                padding: '0.75rem 1rem',
+                border: 'none',
+                backgroundColor: isProspectsActive ? 'var(--bg-surface-hover)' : 'transparent',
+                color: isProspectsActive ? 'var(--primary)' : 'var(--text-secondary)',
+                width: '100%'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Target size={18} />
+                Prospects
+              </div>
+              {isProspectsOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </button>
+
+            {isProspectsOpen && (
+              <div style={{ display: 'flex', flexDirection: 'column', paddingLeft: '2.5rem', marginTop: '0.25rem', gap: '0.25rem' }}>
+                <NavLink
+                  to="/prospects/suivi"
+                  className={({isActive}) => `btn btn-secondary ${isActive ? 'active' : ''}`}
+                  style={({isActive}) => ({
+                    justifyContent: 'flex-start',
+                    padding: '0.5rem',
+                    border: 'none',
+                    backgroundColor: isActive ? 'var(--bg-surface-hover)' : 'transparent',
+                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                    fontSize: '0.875rem'
+                  })}
+                >
+                  Suivi prospect
+                </NavLink>
+                <NavLink
+                  to="/prospects/recherche"
+                  className={({isActive}) => `btn btn-secondary ${isActive ? 'active' : ''}`}
+                  style={({isActive}) => ({
+                    justifyContent: 'flex-start',
+                    padding: '0.5rem',
+                    border: 'none',
+                    backgroundColor: isActive ? 'var(--bg-surface-hover)' : 'transparent',
+                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                    fontSize: '0.875rem'
+                  })}
+                >
+                  Recherche prospect
+                </NavLink>
+              </div>
+            )}
+          </div>
           
           <NavLink 
             to="/members" 
@@ -129,60 +183,6 @@ export const Layout = () => {
               Équipe & Accès
             </NavLink>
           )}
-
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <button 
-              onClick={() => setIsProspectsOpen(!isProspectsOpen)}
-              className={`btn btn-secondary ${isProspectsActive ? 'active' : ''}`}
-              style={{
-                justifyContent: 'space-between',
-                padding: '0.75rem 1rem',
-                border: 'none',
-                backgroundColor: isProspectsActive ? 'var(--bg-surface-hover)' : 'transparent',
-                color: isProspectsActive ? 'var(--primary)' : 'var(--text-secondary)',
-                width: '100%'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Target size={18} />
-                Prospects
-              </div>
-              {isProspectsOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            </button>
-            
-            {isProspectsOpen && (
-              <div style={{ display: 'flex', flexDirection: 'column', paddingLeft: '2.5rem', marginTop: '0.25rem', gap: '0.25rem' }}>
-                <NavLink 
-                  to="/prospects/suivi" 
-                  className={({isActive}) => `btn btn-secondary ${isActive ? 'active' : ''}`}
-                  style={({isActive}) => ({
-                    justifyContent: 'flex-start',
-                    padding: '0.5rem',
-                    border: 'none',
-                    backgroundColor: isActive ? 'var(--bg-surface-hover)' : 'transparent',
-                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                    fontSize: '0.875rem'
-                  })}
-                >
-                  Suivi prospect
-                </NavLink>
-                <NavLink 
-                  to="/prospects/recherche" 
-                  className={({isActive}) => `btn btn-secondary ${isActive ? 'active' : ''}`}
-                  style={({isActive}) => ({
-                    justifyContent: 'flex-start',
-                    padding: '0.5rem',
-                    border: 'none',
-                    backgroundColor: isActive ? 'var(--bg-surface-hover)' : 'transparent',
-                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                    fontSize: '0.875rem'
-                  })}
-                >
-                  Recherche prospect
-                </NavLink>
-              </div>
-            )}
-          </div>
         </nav>
 
         <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-light)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
